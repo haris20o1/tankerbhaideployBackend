@@ -83,7 +83,7 @@ export class AuthService {
         return this.generateAuthResponse(phone, normalizedRole, expoPushToken);
     }
 
-    async verifyAndLogin(idToken: string, role: string, expoPushToken?: string) {
+    async verifyAndLogin(idToken: string, role: string, expoPushToken?: string, signupPayload?: any) {
         if (!['customer', 'driver'].includes(role)) {
             throw new BadRequestException('Role must be customer or driver');
         }
@@ -97,10 +97,17 @@ export class AuthService {
                 throw new UnauthorizedException('No phone number found in token');
             }
 
+            // 2. If it's a new user signing up, route to the signup flow using the verified phone
+            if (signupPayload) {
+                return this.signup({ ...signupPayload, phoneNumber: phone, expoPushToken });
+            }
+
+            // 3. Otherwise, return the standard login response
             return this.generateAuthResponse(phone, role, expoPushToken);
 
         } catch (error) {
-            throw new UnauthorizedException('Invalid Firebase Token', error.message);
+            console.error('[FIREBASE VERIFY ERROR]', error);
+            throw new UnauthorizedException('Invalid Firebase Token: ' + error.message);
         }
     }
 

@@ -12,8 +12,8 @@ export class AuthController {
      * Returns our JWT + user profile.
      */
     @Post('verify-otp')
-    verifyOtp(@Body() dto: VerifyOtpDto & { expoPushToken?: string }) {
-        return this.authService.verifyAndLogin(dto.idToken, dto.role, dto.expoPushToken);
+    verifyOtp(@Body() dto: VerifyOtpDto & { expoPushToken?: string; signupPayload?: any }) {
+        return this.authService.verifyAndLogin(dto.idToken, dto.role, dto.expoPushToken, dto.signupPayload);
     }
 
     /**
