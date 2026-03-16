@@ -60,7 +60,7 @@ export class DriversService {
         const driver = await this.driverModel.findOneAndUpdate(
             { userId },
             { $set: { isOnline } },
-            { new: true },
+            { returnDocument: 'after' },
         );
         if (!driver) throw new NotFoundException('Driver profile not found');
         return driver;
@@ -74,7 +74,7 @@ export class DriversService {
         const driver = await this.driverModel.findOneAndUpdate(
             { userId },
             { $set: { location: { latitude, longitude } } },
-            { new: true },
+            { returnDocument: 'after' },
         );
         if (!driver) throw new NotFoundException('Driver profile not found');
         return driver;

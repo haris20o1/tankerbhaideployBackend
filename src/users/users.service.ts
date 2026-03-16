@@ -17,7 +17,7 @@ export class UsersService {
         const user = await this.userModel.findByIdAndUpdate(
             userId,
             { $set: updates },
-            { new: true },
+            { returnDocument: 'after' },
         );
         if (!user) throw new NotFoundException('User not found');
         return user;
@@ -27,7 +27,7 @@ export class UsersService {
         const user = await this.userModel.findByIdAndUpdate(
             userId,
             { $set: { expoPushToken: token } },
-            { new: true },
+            { returnDocument: 'after' },
         );
         if (!user) throw new NotFoundException('User not found');
         return user;
@@ -37,7 +37,7 @@ export class UsersService {
         const user = await this.userModel.findByIdAndUpdate(
             userId,
             { $unset: { expoPushToken: '' } },
-            { new: true },
+            { returnDocument: 'after' },
         );
         if (!user) throw new NotFoundException('User not found');
         return user;
