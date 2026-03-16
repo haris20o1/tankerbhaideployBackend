@@ -2,6 +2,8 @@ import {
     Injectable,
     UnauthorizedException,
     BadRequestException,
+    ConflictException,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -102,10 +104,18 @@ export class AuthService {
                 return this.signup({ ...signupPayload, phoneNumber: phone, expoPushToken });
             }
 
-            // 3. Otherwise, return the standard login response
-            return this.generateAuthResponse(phone, role, expoPushToken);
+            // 3. Login flow - check the user actually exists first
+            const existingUser = await this.userModel.findOne({ phone });
+            if (!existingUser) {
+                throw new NotFoundException('No account found for this number. Please sign up first.');
+            }
+
+            // 4. Return the login response using the role stored in the database (not the requested role)
+            return this.generateAuthResponse(phone, existingUser.role, expoPushToken);
 
         } catch (error) {
+            // Re-throw NestJS HTTP exceptions directly (don't wrap them)
+            if (error?.status) throw error;
             console.error('[FIREBASE VERIFY ERROR]', error);
             throw new UnauthorizedException('Invalid Firebase Token: ' + error.message);
         }
@@ -157,10 +167,12 @@ export class AuthService {
         const normalizedRole =
             role === 'TANKER_USER' || role === 'driver' ? 'driver' : 'customer';
 
-        // If user already exists, return a fresh JWT (graceful re-login)
+        // If user already exists, reject the signup and tell them to login
         const existing = await this.userModel.findOne({ phone: phoneNumber });
         if (existing) {
-            return this.generateAuthResponse(phoneNumber, existing.role, expoPushToken);
+            throw new ConflictException(
+                `An account already exists for this number as a ${existing.role}. Please use the Login screen instead.`
+            );
         }
 
         // Create base user
