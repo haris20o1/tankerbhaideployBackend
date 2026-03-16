@@ -86,7 +86,8 @@ export class AuthService {
     }
 
     async verifyAndLogin(idToken: string, role: string, expoPushToken?: string, signupPayload?: any) {
-        if (!['customer', 'driver'].includes(role)) {
+        // Only validate role for signup — for login we always use the role stored in DB
+        if (signupPayload && !['customer', 'driver'].includes(role)) {
             throw new BadRequestException('Role must be customer or driver');
         }
 
